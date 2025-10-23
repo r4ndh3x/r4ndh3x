@@ -1,6 +1,30 @@
 ![](attachments/Pasted%20image%2020251016184744.png)
-
 # HackTheBox — Lame Notes by R4ndH3x
+
+- [1.1 vsftpd 2.3.4](#11-vsftpd-234)
+	- [1.1.1 (High) Backdoor Command Execution](#111-high-backdoor-command-execution)
+		- [1.1.1.1 Exploitation](#1111-exploitation)
+		- [1.1.1.3 Remediation](#1113-remediation)
+		- [1.1.1.4 Reference](#1114-reference)
+	- [1.1.2 (Medium) FTP Anonymous Access](#112-medium-ftp-anonymous-access)
+		- [1.1.2.1 Evidence](#1121-evidence)
+		- [1.1.2.2 Remediation](#1122-remediation)
+		- [1.1.2.3 Reference](#1123-reference)
+- [1.2 OpenSSH v4.7p1](#12-openssh-v47p1)
+	- [1.2.1 (High) Outdated Version Multiple Vulnerabilities](#121-high-outdated-version-multiple-vulnerabilities)
+		- [1.1.1.1 Evidence](#1111-evidence)
+		- [1.1.1.2 Remediation](#1112-remediation)
+		- [1.1.1.3 Reference](#1113-reference)
+- [1.3 Samba smbd](#13-samba-smbd)
+	- [1.3.1 (Low) Anonymous Access to Shared Resources](#131-low-anonymous-access-to-shared-resources)
+		- [1.1.3.1 Evidence](#1131-evidence)
+		- [1.1.3.2 Remediation](#1132-remediation)
+		- [1.1.3.3 Reference](#1133-reference)
+	- [1.1.4 (High) Remote Command Execution](#114-high-remote-command-execution)
+		- [1.1.4.1 Exploitation](#1141-exploitation)
+		- [1.1.4.2 Evidence](#1142-evidence)
+		- [1.1.4.3 Reference](#1143-reference)
+		- [1.1.4.4 Flags](#1144-flags)
 
 # 1.  Port Scanning
 

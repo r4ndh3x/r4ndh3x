@@ -1,6 +1,21 @@
 ![](attachments/Pasted%20image%2020251023125801.png)
 # HackTheBox — Cap Notes by R4ndH3x
 
+- [1.1 gunicorn](#11-gunicorn)
+	- [1.1.1 (High) Insecure Direct Object Reference](#111-high-insecure-direct-object-reference)
+		- [1.1.1.1 Exploitation](#1111-exploitation)
+		- [1.1.1.4 Remediation](#1114-remediation)
+		- [1.1.1.5 Reference](#1115-reference)
+- [1.2 OpenSSH 8.2p1 Ubuntu 4ubuntu0.2](#12-openssh-82p1-ubuntu-4ubuntu02)
+	- [1.2.1 (High) Password Reuse](#121-high-password-reuse)
+		- [1.2.1.1 Evidence](#1211-evidence)
+		- [1.1.1.4 Remediation](#1114-remediation)
+		- [1.1.1.5 Reference](#1115-reference)
+	- [1.2.2 (High) Python Binary Privilege Escalation](#122-high-python-binary-privilege-escalation)
+		- [1.2.2.1 Exploitation](#1221-exploitation)
+		- [1.1.1.4 Remediation](#1114-remediation)
+		- [1.1.1.5 Reference](#1115-reference)
+
 # 1.  Port Scanning
 
 `nmap -sC -sV -oA nmap/lame -vv -Pn cap.htb`

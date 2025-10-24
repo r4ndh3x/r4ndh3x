@@ -1,20 +1,23 @@
 ![](attachments/Pasted%20image%2020251023125801.png)
+
 # HackTheBox — Cap Notes by R4ndH3x
 
-- [1.1 gunicorn](#11-gunicorn)
-	- [1.1.1 (High) Insecure Direct Object Reference](#111-high-insecure-direct-object-reference)
-		- [1.1.1.1 Exploitation](#1111-exploitation)
-		- [1.1.1.4 Remediation](#1114-remediation)
-		- [1.1.1.5 Reference](#1115-reference)
-- [1.2 OpenSSH 8.2p1 Ubuntu 4ubuntu0.2](#12-openssh-82p1-ubuntu-4ubuntu02)
-	- [1.2.1 (High) Password Reuse](#121-high-password-reuse)
-		- [1.2.1.1 Evidence](#1211-evidence)
-		- [1.1.1.4 Remediation](#1114-remediation)
-		- [1.1.1.5 Reference](#1115-reference)
-	- [1.2.2 (High) Python Binary Privilege Escalation](#122-high-python-binary-privilege-escalation)
-		- [1.2.2.1 Exploitation](#1221-exploitation)
-		- [1.1.1.4 Remediation](#1114-remediation)
-		- [1.1.1.5 Reference](#1115-reference)
+- [HackTheBox — Cap Notes by R4ndH3x](#hackthebox--cap-notes-by-r4ndh3x)
+- [1.  Port Scanning](#1--port-scanning)
+	- [1.1 gunicorn](#11-gunicorn)
+		- [1.1.1 (High) Insecure Direct Object Reference](#111-high-insecure-direct-object-reference)
+			- [1.1.1.1 Exploitation](#1111-exploitation)
+			- [1.1.1.4 Remediation](#1114-remediation)
+			- [1.1.1.5 Reference](#1115-reference)
+	- [1.2 OpenSSH 8.2p1 Ubuntu 4ubuntu0.2](#12-openssh-82p1-ubuntu-4ubuntu02)
+		- [1.2.1 (High) Password Reuse](#121-high-password-reuse)
+			- [1.2.1.1 Evidence](#1211-evidence)
+			- [1.1.1.4 Remediation](#1114-remediation-1)
+			- [1.1.1.5 Reference](#1115-reference-1)
+		- [1.2.2 (High) Python Binary Privilege Escalation](#122-high-python-binary-privilege-escalation)
+			- [1.2.2.1 Exploitation](#1221-exploitation)
+			- [1.1.1.4 Remediation](#1114-remediation-2)
+			- [1.1.1.5 Reference](#1115-reference-2)
 
 # 1.  Port Scanning
 
@@ -34,7 +37,7 @@
 
 #### 1.1.1.1 Exploitation
 
-An insecure direct object reference (IDOR) has been found when accessing the link `http://cap.htb/data/<integer>`
+An insecure direct object reference (IDOR) has been found when accessing the link `http://cap.htb/data/<integer>` 
 
 ![](attachments/Pasted%20image%2020251024053405.png)
 > This demonstrates a page is returned when accessing http://cap.htb/data/0 and the tester is able to click the Download button and was able to access other user files.
@@ -54,7 +57,7 @@ After examing the file in wireshark, the tester found credentials used when a us
 ![](attachments/Pasted%20image%2020251024054347.png)
 > This showcases a user named nathan interacting with FTP service and the password is displayed in raw text. nathan:Buck3tH4TF0RM3!
 
-The tester used the same credentials leaked in the file `0.pcap` to gain access in FTP service.
+Using the credentials found in the pcap file, the tester was able to login to the FTP service and access the file `user.txt` which contains the user flag.
 
 ```less
 ┌─[r4ndhex@parrot]─[hackthebox/machine/cap/files]
@@ -110,6 +113,8 @@ ftp> exit
 
 #### 1.2.1.1 Evidence
 
+The tester used the credentials found in the pcap file to login to the SSH service. 
+
 ```less
 ┌─[r4ndhex@parrot]─[/hackthebox/machine/cap/files]
 └──╼ $ ssh nathan@cap.htb
@@ -146,6 +151,7 @@ Last login: Fri Oct 24 05:53:25 2025 from 10.10.14.18
 nathan@cap:~$ id
 uid=1001(nathan) gid=1001(nathan) groups=1001(nathan)
 ```
+> This demonstrates the tester was able to login in `ssh` using the same credentials.
 
 #### 1.1.1.4 Remediation
 
